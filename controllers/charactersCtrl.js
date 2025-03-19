@@ -3,31 +3,52 @@ const axios = require ("axios")
 
 
 const getAllCharacters = async (req, res) => {
+    
+//prepare the query parameters for API request
+const limit =req.body.limit || 100;
+const skip = req.body.skip || 0;
+const name = req.body.name || null
 
-const limit =100;
-const skip = 0;
-const name = "A-Bomb"
-let test
     try {
 
-        //fetch the characters datas
-        const allCharacters = await axios.get(`https://lereacteur-marvel-api.herokuapp.com/characters?apiKey=${process.env.API_KEY}${limit ? "&limit=" + limit : ""}${skip ? "&skip=" + skip : ""}${name ? "&name=" + name : ""}`)
+        //fetch characters' datas
+        const fetchAllCharacters = await axios.get(`https://lereacteur-marvel-api.herokuapp.com/characters?apiKey=${process.env.API_KEY}${limit ? "&limit=" + limit : ""}${skip ? "&skip=" + skip : ""}${name ? "&name=" + name : ""}`)
 
-        console.log(allCharacters.data);
+        const charactersDatas = fetchAllCharacters.data
 
-           res.status(200).json("C'est là")
+           res.status(200).json(charactersDatas)
     } catch (error) {
         res.status(error.status || 500).json(error.message || "Internal server error")
     }
- 
     
 }
 
 
 
 const getOneCharacter = async (req, res) => {
+
+    
+
+    try {
+
+        if(!req.params.id){
+            throw({status: 400, message: "characterId manquant"})
+        }
+
+    const characterId = req.params.id;
+
+    const fetchOneCharacter = await axios.get(`https://lereacteur-marvel-api.herokuapp.com/character/${characterId}?apiKey=${process.env.API_KEY}`)
+    
+    const characterDatas = fetchOneCharacter.data
+
+    res.status(200).json(characterDatas)
+
+
+    } catch (error) {
+        res.status(error.status || 500).json(error.message || "Internal server error")
+    }
     console.log(req.params.id);
-    res.status(200).json("Par ici")
+
     
 }
 

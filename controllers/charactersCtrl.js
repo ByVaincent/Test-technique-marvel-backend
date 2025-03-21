@@ -3,18 +3,21 @@ const axios = require ("axios")
 
 
 const getAllCharacters = async (req, res) => {
-    
+   
 //prepare the query parameters for API request
-const limit =req.body.limit || 100;
-const skip = req.body.skip || 0;
-const name = req.body.name || null
+const page = req.query.page;
+const name = req.query.name || null;
+
+//pagination
+const limit = 100;
+const skip = (Number(page) - 1) * 100
 
     try {
 
         //fetch characters' datas
-        const fetchAllCharacters = await axios.get(`https://lereacteur-marvel-api.herokuapp.com/characters?apiKey=${process.env.API_KEY}${limit ? "&limit=" + limit : ""}${skip ? "&skip=" + skip : ""}${name ? "&name=" + name : ""}`)
+        const fetchAllCharacters = await axios.get(`https://lereacteur-marvel-api.herokuapp.com/characters?apiKey=${process.env.API_KEY}${skip ? "&skip=" + skip : ""}${limit ? "&limit=" + limit : ""}${name ? "&name=" + name : ""}`)
 
-        const charactersDatas = fetchAllCharacters.data
+        const charactersDatas = fetchAllCharacters.data        
 
            res.status(200).json(charactersDatas)
     } catch (error) {
@@ -27,8 +30,6 @@ const name = req.body.name || null
 
 const getOneCharacter = async (req, res) => {
 
-    
-
     try {
 
         if(!req.params.id){
@@ -39,7 +40,24 @@ const getOneCharacter = async (req, res) => {
 
     const fetchOneCharacter = await axios.get(`https://lereacteur-marvel-api.herokuapp.com/character/${characterId}?apiKey=${process.env.API_KEY}`)
     
-    const characterDatas = fetchOneCharacter.data
+    const characterDatas = fetchOneCharacter.data   
+    
+
+    //Fetch character's comic's details and add it to the response
+    const comicsDetailsPromises = []
+
+    characterDatas.comics.forEach((comicsId) => {
+        const fetchComicsDetails = axios.get(`https://lereacteur-marvel-api.herokuapp.com/comic/${comicsId}?apiKey=${process.env.API_KEY}`)
+
+        comicsDetailsPromises.push(fetchComicsDetails)
+        
+    })
+    
+    const comicsDetails = await  Promise.all(comicsDetailsPromises)
+
+    const comicsDetailsDatas = comicsDetails.map((response) => response.data)
+    
+    characterDatas.comicsDetails = comicsDetailsDatas
 
     res.status(200).json(characterDatas)
 
@@ -47,8 +65,6 @@ const getOneCharacter = async (req, res) => {
     } catch (error) {
         res.status(error.status || 500).json(error.message || "Internal server error")
     }
-    console.log(req.params.id);
-
     
 }
 

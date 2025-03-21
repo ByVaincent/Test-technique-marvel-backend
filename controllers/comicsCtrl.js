@@ -3,14 +3,16 @@ const axios = require ("axios")
 
 
 const getAllComics = async (req, res) => {
-
+    
     //prepare the query parameters for API request
-    const limit =req.body.limit || 100;
-    const skip = req.body.skip || 0;
-    const title = req.body.title || null
+    const page = req.query.page;
+    const title = req.query.name || null;
+
+    //pagination
+    const limit =100;
+    const skip = (page - 1) * 100
     
         try {
-    
             //fetch characters' datas
             const fetchAllComics = await axios.get(`https://lereacteur-marvel-api.herokuapp.com/comics?apiKey=${process.env.API_KEY}${limit ? "&limit=" + limit : ""}${skip ? "&skip=" + skip : ""}${title ? "&title=" + title : ""}`)
     

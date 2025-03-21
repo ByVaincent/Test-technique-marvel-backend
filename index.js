@@ -18,6 +18,7 @@ try {
 const charactersRtes = require("./routes/charactersRoute");
 const comicsRtes = require("./routes/comicsRoute");
 const authenticationRtes = require("./routes/authenticationRoute");
+const favoritesRtes = require("./routes/favoritesRoute");
 
 app.get("/", (req, res) => {
   res.status(200).json("Bienvenue!");
@@ -28,6 +29,8 @@ app.use(authenticationRtes);
 app.use(charactersRtes);
 
 app.use(comicsRtes);
+
+app.use(favoritesRtes);
 
 app.all("*", (req, res) => {
   res.status(404).json("Not found!");

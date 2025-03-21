@@ -1,4 +1,5 @@
 const passwordEncryption = require("../utils/passwordEncryption");
+const checkPassword = require("../utils/checkPassword");
 const User = require("../Models/User");
 const uid2 = require("uid2");
 
@@ -26,7 +27,6 @@ const signup = async (req, res) => {
     const encryptedData = passwordEncryption(req.body.password);
 
     //create token
-
     const token = uid2(64);
 
     const newUser = new User({
@@ -50,8 +50,31 @@ const signup = async (req, res) => {
   }
 };
 
-const login = (req, res) => {
+const login = async (req, res) => {
   try {
+    if (!req.body.email || !req.body.password) {
+      throw {
+        status: 400,
+        message: "Merci de renseigner votre mail et votre password",
+      };
+    }
+
+    const user = await User.findOne({ email: req.body.email });
+
+    if (!user) {
+      throw { statut: 400, message: "Email ou mot de passe incorrect" };
+    }
+
+    //check password
+    const goodPassword = checkPassword(req.body.password, user.salt, user.hash);
+
+    if (!goodPassword) {
+      throw { statut: 400, message: "Email ou mot de passe incorrect" };
+    }
+
+    res
+      .status(200)
+      .json({ message: "Vous êtes connecté", id: user._id, token: user.token });
   } catch (error) {
     res
       .status(error.status || 500)

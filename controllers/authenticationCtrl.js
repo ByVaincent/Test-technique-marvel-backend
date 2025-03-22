@@ -1,12 +1,11 @@
 const passwordEncryption = require("../utils/passwordEncryption");
 const checkPassword = require("../utils/checkPassword");
 const User = require("../Models/User");
+const Favorites = require("../Models/Favorites");
 const uid2 = require("uid2");
 
 const signup = async (req, res) => {
   try {
-    console.log(req.body);
-
     if (!req.body.username || !req.body.email || !req.body.password) {
       throw {
         status: 400,
@@ -35,14 +34,18 @@ const signup = async (req, res) => {
       hash: encryptedData.hash,
       salt: encryptedData.salt,
       token: token,
-      favorites: [],
     });
 
+    //create the favorites linked object in db
+    const userFavorites = new Favorites({ favorites: [], owner: newUser._id });
+
+    await userFavorites.save();
     await newUser.save();
 
-    res
-      .status(201)
-      .json({ message: "Utilisateurs créé avec succès", data: newUser });
+    res.status(201).json({
+      message: "Utilisateurs créé avec succès",
+      data: { token: newUser.token, username: newUser.username },
+    });
   } catch (error) {
     res
       .status(error.status || 500)
@@ -72,12 +75,10 @@ const login = async (req, res) => {
       throw { statut: 400, message: "Email ou mot de passe incorrect" };
     }
 
-    res
-      .status(200)
-      .json({
-        message: "Vous êtes connecté",
-        data: { id: user._id, token: user.token },
-      });
+    res.status(200).json({
+      message: "Vous êtes connecté",
+      data: { id: user._id, token: user.token },
+    });
   } catch (error) {
     res
       .status(error.status || 500)

@@ -1,6 +1,4 @@
 const isAuthenticated = (req, res, next) => {
-  //   console.log(req.headers);
-
   if (!req.headers.authorization) {
     res
       .status(401)

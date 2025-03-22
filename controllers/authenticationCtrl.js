@@ -86,4 +86,22 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { signup, login };
+const getUserData = async (req, res) => {
+  try {
+    if (!req.body.token) {
+      throw { status: 400, message: "Vous devez être connecté" };
+    }
+
+    const userData = await User.findOne({ token: req.body.token });
+
+    res.status(200).json({
+      data: { token: userData.token, username: userData.username },
+    });
+  } catch (error) {
+    res
+      .status(error.status || 500)
+      .json(error.message || "Internal server error");
+  }
+};
+
+module.exports = { signup, login, getUserData };
